@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<style>
+			#loginBtn{
+				background: red;
+			}
+			#reg,#loginWx{
+				color: red;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">登录</h1>
+		</header>
+		<div class="mui-content">
+			<div style="padding:15px 0px;">
+				<form id='login-form' class="mui-input-group">
+					<div class="mui-input-row">
+						<label>账号</label>
+						<input id='account' type="text" class="mui-input-clear mui-input" placeholder="请输入账号">
+					</div>
+					<div class="mui-input-row">
+						<label>密码</label>
+						<input id='password' type="password" class="mui-input-clear mui-input" placeholder="请输入密码">
+					</div>
+				</form>
+			</div>
+			<div class="mui-content-padded">
+				<button id='loginBtn' class="mui-btn mui-btn-primary" style="width:100%; height:40px;">登录</button>
+				<div style="padding:15px 0px; font-size:14px; text-align:center;">
+					<a id='reg'>注册账号</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+					<a id="loginWx">微信登录</a>
+				</div>
+			</div>
+		</div>
+
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			document.getElementById("reg").addEventListener("tap", function() {
+				mui.openWindow({
+					url: 'reg.html',
+					id: 'reg'
+				})
+			})
+			document.getElementById("loginBtn").addEventListener("tap", function() {
+				var username = document.getElementById("account").value;
+				if(username.length < 5) {
+					mui.toast('用户名不能少于5位');
+					return false;
+				}
+				var pwd = document.getElementById("password").value;
+				if(pwd.length < 6) {
+					mui.toast('密码不能少于6位');
+					return false;
+				}
+				mui.post(
+					apiUrl + 'members&m=login&type=1', {
+						username: username,
+						password: pwd
+					},
+					function(res) {
+						if(res.status == 'error') {
+							mui.toast(res.data);
+						} else {
+							//							console.log(JSON.stringify(res));
+							plus.storage.setItem('suid', res.data.u_id + '');
+							plus.storage.setItem('srand', res.data.u_randnum + '');
+							mui.toast('登录成功');
+							setTimeout(function() {
+								plus.webview.currentWebview().close();
+								//如果reg页面存在关闭reg页面
+								var reg = plus.webview.getWebviewById('reg');
+
+								if(reg) {
+
+									reg.close();
+
+								}
+							}, 1000);
+
+						}
+
+					}, 'json'
+				)
+			})
+			var wxLoginObj;//存放微信信息
+			mui.plusReady(function(){
+				document.getElementById("loginWx").addEventListener("tap",function(){
+					plus.oauth.getServices(function(s){
+//						console.log(JSON.stringify(s));
+						for(var i=0;i<s.length;i++){
+							if(s[i].id=='weixin'){
+								wxLoginObj = s[i];//保存了微信的信息
+								if(wxLoginObj == null) {
+									mui.toast('微信登陆失败');
+									return;
+								}
+
+								wxLoginObj.login(function(res){
+//									console.log(JSON.stringify(res));
+									var user = res.target.userInfo;
+									var gender = new Array('', '男', '女');//定义性别
+									mui.post(
+										apiUrl+'members&m=createUser&type=2',
+										{
+											openid: user.openid,
+											name: user.nickname,
+											face: user.headimgurl,
+											gender: gender[user.sex]
+										},
+										function(res1){
+											console.log(JSON.stringify(res1));
+											
+											if(res1.status=='ok'){
+												plus.storage.setItem('suid', res1.data.u_id + '');
+												plus.storage.setItem('srand', res1.data.u_randnum + '');
+												mui.toast('登录成功');
+												setTimeout(function() {
+												plus.webview.currentWebview().close();
+												//如果reg页面存在关闭reg页面
+												var login = plus.webview.getWebviewById('login');
+												if(login) {
+													login.close();
+												}
+											}, 1000);
+											}else{
+												mui.toast("登录失败");
+											}
+											
+										},'json'
+									)
+								});
+							}
+						}
+					},function(){
+						mui.toast('微信登录失败');
+					})
+				})
+			})
+			
+		</script>
+	</body>
+
+</html>

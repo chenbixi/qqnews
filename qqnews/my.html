@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">我的</h1>
+		</header>
+		<div class="mui-content" id="account">
+			<ul class="mui-table-view mui-table-view-chevron">
+				<li class="mui-table-view-cell mui-media">
+					<img class="mui-media-object mui-pull-left head-img" id="head-img" v-bind:src="user.u_face" />
+					<div class="mui-media-body">
+						{{user.u_name}}
+						<p class='mui-ellipsis'>欢迎您！</p>
+					</div>
+				</li>
+			</ul>
+			<ul class="mui-table-view mui-table-view-chevron" style="margin-top:20px;">
+				<li class="mui-table-view-cell">
+					<a class="mui-navigate-right">我的收藏</a>
+				</li>
+				<li class="mui-table-view-cell" id="mycomments">
+					<a class="mui-navigate-right">我的评论</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view" style="margin-top:20px;">
+				<li class="mui-table-view-cell" style="text-align: center;">
+					<a id="logoff">退出登录</a>
+				</li>
+			</ul>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/vue.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			var userObj=new Vue({
+				el:'#account',
+				data:{
+					user:[]
+				}
+			});
+			//自己写好的函数,如果没有登录返回登录页
+			//已经登录返回suid和srand
+			mui.plusReady(function(){
+				//因为storage的数据需要在这里获取
+				var checkRes=checkLogin();
+				if(checkRes){
+						mui.post(
+							apiUrl+'members',
+							{
+								wit_suid:checkRes[0],
+								wit_srand:checkRes[1]
+							},
+							function(res){								
+								console.log(JSON.stringify(res));
+								userObj.user=res.data;																
+							},'json'
+						)									
+				}
+				//也可以用storage获取两个值
+				
+				document.getElementById("logoff").addEventListener("tap",function(){
+					plus.storage.removeItem('suid');
+					plus.storage.removeItem('srand');
+					mui.toast('您已退出');
+					setTimeout(function(){
+						mui.back();
+					},2000);
+				})
+				
+				
+				document.getElementById("mycomments").addEventListener("tap",function(){
+					mui.openWindow({
+						url:'comments.html',
+						id:'comments'
+					})
+				})
+				
+				/*点我的评论跳转到评论页面*/
+			document.getElementById("mycomments").addEventListener('tap',function(){
+				mui.openWindow({
+					url:'comments.html',
+					id:'comments'
+				})
+			})
+		})
+		</script>
+	</body>
+
+</html>

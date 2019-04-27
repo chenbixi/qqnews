@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+	<body>
+		
+		
+<div id="refreshContainer">
+	<ul class="mui-table-view">
+	    <li class="mui-table-view-cell mui-media" v-for="item in newList" @click="showInfo(item.article_id)">
+	        <a href="javascript:;">
+	            <img class="mui-media-object mui-pull-left" v-bind:src="'http://static.hcoder.net/'+item.article_img_url">
+	            <div class="mui-media-body">
+	                {{item.article_title}}
+	                <!--<p class="mui-ellipsis">能</p>-->
+	            </div>
+	        </a>
+	    </li>
+	</ul>
+</div>
+		
+	</body>
+	
+	<script src="js/mui.min.js"></script>
+	<script type="text/javascript" src="js/vue.min.js" ></script>
+		<script type="text/javascript">
+			mui.init({
+				pullRefresh : {
+				    container:"#refreshContainer",//下拉刷新容器标识，querySelector能定位的css选择器均可，比如：id、.class等
+				   
+				     up : {
+				      height:50,//可选.默认50.触发上拉加载拖动距离
+				      auto:false,//可选,默认false.自动上拉加载一次
+				      contentrefresh : "正在加载...",//可选，正在加载状态时，上拉加载控件上显示的标题内容
+				      contentnomore:'没有更多数据了',//可选，请求完毕若没有更多数据时显示的提醒内容；
+				      callback :getMoreNews //必选，刷新函数，根据具体业务来编写，比如通过ajax从服务器获取新数据；
+				    }
+				  }
+			});
+			mui.plusReady(function(){
+				getNews();
+			})
+			var newObj = new Vue({
+				el:'#refreshContainer',
+				data:{
+					newList:[]
+				},
+				methods:{
+					showInfo:function(artId){
+						mui.openWindow({
+							url:'info.html',
+							id:'info',
+							extras:{
+								artId:artId
+							}
+						})
+					}
+				}
+			})
+			
+			var page = 1;
+			var cate = 0;
+			var kwd='';
+			function getNews(){
+				page=1;
+			/*	plus.nativeUI.showWaiting();*/
+				mui.post(
+					apiUrl+'article&m=articleList&page='+page+'&cate='+cate,
+					{kwd:kwd},
+				    function(res){
+				    	console.log(JSON.stringify(res));
+				    	newObj.newList=res.data;
+				        mui('#refreshContainer').pullRefresh().refresh();
+					
+				},'json')
+				
+			}
+			
+			function getMoreNews(){
+				var _self=this;
+				mui.post(
+					apiUrl+'article&m=articleList&page='+page+'&cate='+cate,
+					{kwd:kwd},
+					function(res){
+						if(res.status=='empty'){
+							_self.endPullupToRefresh(true);
+							return false;
+						}else{
+							newObj.newList=newObj.newList.concat(res.data);
+							page++;
+							//这里不能要参数true,要了会没数据
+							_self.endPullupToRefresh(false);
+						}		
+					}					
+				,'json');
+			}
+			
+		</script>
+
+</html>

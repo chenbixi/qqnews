@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+   
+    <link href="css/mui.min.css" rel="stylesheet"/>
+    <style>
+    	#header{
+    		background: url(img/headerBg.png);
+    		height: 104px;
+    	}
+    		#logo{
+    		width:50px;
+    		height: 44px;
+    		text-align: center;
+    		flex-shrink:0;
+    		/*在flex布局下如果放不下两个元素,logo不缩小*/
+    	}
+    	#logo img{
+    		width: 40px;
+    	}
+    	#indexSearch{
+    		width: 100%;
+    		/*因为flex布局,即使100%也不会换行*/
+    		height:30px;
+    		background-color: #fff;
+    		margin: 7px 15px;
+    		font-size: 15px;
+    		border-radius: 30px;
+    	}
+    	#indexCate {
+			height: 44px;
+		}
+			
+		#indexCate a {
+			color: #FFFFFF;
+		}			
+		.mui-segmented-control.mui-segmented-control-inverted .mui-control-item.mui-active{
+			border-bottom: 2px solid #FFFFFF ;
+		}
+
+
+    </style>
+</head>
+<body>
+<div id="header">
+     <div style="display:flex;">
+		<div id="logo">
+			<img src="img/logo.png" />
+		</div>
+		<div id="indexSearch">
+			<input type="search" value="" placeholder="请输入关键字" id="indexSearchPut"/>
+		</div>
+	</div>
+	<div id="indexCate" class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">				
+		<div class="mui-scroll">
+			<a class="mui-control-item mui-active" id="0">全部</a>
+			<a class="mui-control-item " v-for="(items,index) in cate" v-bind:id="index">
+				{{items}}
+			</a>				
+		</div>
+	</div>
+</div>
+
+
+
+	<nav class="mui-bar mui-bar-tab">
+	    <a class="mui-tab-item mui-active">
+	        <span class="mui-icon mui-icon-home"></span>
+	        <span class="mui-tab-label">首页</span>
+	    </a>
+	    <a class="mui-tab-item">
+	        <span class="mui-icon mui-icon-videocam"></span>
+	        <span class="mui-tab-label">视频</span>
+	    </a>
+	    <a class="mui-tab-item" id="page_login">
+	        <span class="mui-icon mui-icon-person"></span>
+	        <span class="mui-tab-label">我的</span>
+	    </a>
+	</nav>
+
+	
+	
+</body>
+ <script src="js/mui.min.js"></script>
+ <script type="text/javascript" src="js/vue.min.js" ></script>
+<script type="text/javascript" charset="utf-8">
+      	mui.init({
+      		subpages:[
+      		  {
+      			url:'sub.html',
+      			id:'sub',
+      			styles:{
+      				top:'108px',
+      				bottom:'44px'
+      			}
+      			
+      		  }
+      		]
+      	});
+      mui.plusReady(function(){
+      		plus.storage.removeItem('suid');
+      		plus.storage.removeItem('srand');
+      	})
+      	//创建vue对象
+      	var indexCateObj = new Vue({
+      		el:"#indexCate",
+      		data:{
+      			cate:[]
+      		}
+      	})
+      /*	连接远程服务器 获取分类信息*/
+      	mui.getJSON(
+      		apiUrl+'cate',
+      		function(data){
+      			console.log(JSON.stringify(data));
+      			indexCateObj.cate = data.data;
+      		}
+      	)
+      	mui(".mui-scroll").on('tap','.mui-control-item',function(){
+      		/*alert(this.id);*/
+      		var index = this.id;
+      		var subpage = plus.webview.getWebviewById('sub');
+      		subpage.evalJS('cate='+index+';kwd="";getNews();');
+      		indexSearchPut.value='';
+			indexSearchPut.blur();
+
+      	})
+      	
+      	var indexSearchPut = document.getElementById('indexSearchPut');
+      	indexSearchPut.addEventListener('keyup',function(e){
+      		if(e.keyCode==13){
+      			var kwd=this.value;
+      			console.log(kwd);
+      			var subpage=plus.webview.getWebviewById("sub");
+      			subpage.evalJS('kwd="'+kwd+'";cate=0;getNews();');
+      		}
+      		
+      	})
+      	
+      	/*注册登陆*/
+      	document.getElementById("page_login").addEventListener('tap',function(){
+      		var LoginRes=checkLogin();
+      		if(!LoginRes){
+      			return false;
+      		}
+      		mui.openWindow({
+      			url:'my.html',
+      			id:'my'
+      		})
+      	})
+      
+    </script>
+</html>

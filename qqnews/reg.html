@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<div class="mui-content">
+			<div style="padding:15px 0px;">
+				<form id='login-form' class="mui-input-group">
+					<div class="mui-input-row">
+						<label>账号</label>
+						<input id='account' type="text" class="mui-input-clear mui-input" placeholder="请输入账号">
+					</div>
+					<div class="mui-input-row">
+						<label>密码</label>
+						<input id='password' type="password" class="mui-input-clear mui-input" placeholder="请输入密码">
+					</div>
+					<div class="mui-input-row">
+						<label>昵称</label>
+						<input id='nickname' type="text" class="mui-input-clear mui-input" placeholder="请输入昵称">
+					</div>
+				</form>
+			</div>
+			<div class="mui-content-padded">
+				<button id='regBtn' class="mui-btn mui-btn-primary" style="width:100%; height:40px;color: white;background: red;">注册</button>
+				<div style="padding:15px 0px; font-size:14px; text-align:center;">
+					<a id='login'>返回登录</a>
+				</div>
+			</div>
+		</div>
+
+	</body>
+	<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			document.getElementById("login").addEventListener("tap",function(){
+				mui.back();
+			})
+			//注册按钮及简单验证,可用正则添加其他验证
+			document.getElementById("regBtn").addEventListener("tap",function(){
+			//获取用户名和密码并简单验证
+			var username=document.getElementById("account").value;
+			if(username.length<5){
+				mui.toast('用户名不能少于5位');
+				return false;
+			}
+			var pwd=document.getElementById("password").value;
+			if(pwd.length<6){
+				mui.toast('密码不能少于6位');
+				return false;
+			}
+			var nickname=document.getElementById("nickname").value;
+			if(nickname.length<2){
+				mui.toast('昵称至少2个字符');
+				return false;
+			}
+			mui.post(
+				apiUrl+'members&m=createUser',
+				{
+					username:username,
+					password:pwd,
+					name:nickname
+				},
+				function(res){
+					console.log(JSON.stringify(res));
+					if(res.status=='error'){
+						//如果错,返回错误的原因
+						mui.toast(res.data);
+				}else{	
+		    console.log(JSON.stringify(res));
+		//注册成功
+		//记录suid和srand,因为获取的id和srand都是数字,要变成字符串因此加一个空字符
+							 plus.storage.setItem('suid',res.data.u_id+'');
+										 plus.storage.setItem('srand',res.data.u_randnum+'');
+					mui.toast('注册成功');
+					//延迟2秒关闭注册页面和登录页面
+					setTimeout(function(){
+						plus.webview.currentWebview().close();
+						plus.webview.getWebviewById('login').close();
+						},1000);
+					/*	mui.openWindow({
+							url:'my.html',
+      			            id:'my'
+						})*/
+					}
+				},'json'
+			);
+		})
+
+
+		</script>
+
+</html>

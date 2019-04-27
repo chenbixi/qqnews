@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<style>
+			.mui-content *{
+				color: #666;
+				line-height: 1.8em;
+				font-size: 16px;
+				
+			}
+			.mui-content img{
+				width: 100%;
+			}
+			#main h2{
+				margin-top: 50px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="main">
+			<header class="mui-bar mui-bar-nav">
+			    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			    <h1 class="mui-title">{{art.article_keywords}}</h1>
+			</header>
+			<h2>{{art.article_title}}</h2>
+			<div class="mui-content" v-html="art.article_content" style="padding: 8px;margin-top: 10px;">
+				
+			</div>
+			
+			<!--评论标题-->
+			<div style="height: 50px;line-height: 50px;padding: 0px 10px;">相关评论</div>
+			
+			<!--加载评论内容的div-->
+			<ul class="mui-table-view">
+			    <li class="mui-table-view-cell mui-media" v-for="items in comments>
+			        <a href="javascript:;">
+			            <img v-bind:src="items.u_face">
+			            <div class="mui-media-body">
+			               	{{items.u_name}}
+			                <p class="mui-ellipsis">{{items.comments_contents}}</p>
+			                <p class="mui-ellipsis">{{items.comments_date}}</p>
+			            </div>
+			        </a>
+			    </li>
+			   
+			</ul>
+		</div>
+		
+		
+		
+		
+		
+		
+		
+		<!--评论按钮-->
+		<div class="footer-line"></div>
+		<div id="footer">
+			<div class="footer-input">
+				<textarea id="submitContent"></textarea>
+			</div>
+			<div class="footer-submit" id="submitBtn">提交</div>
+		</div>
+		
+		
+		
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript" src="js/vue.min.js" ></script>
+		<script type="text/javascript">
+		
+			mui.init();
+			var artId;
+			var artObj=new Vue({
+				el:'#main',
+				data:{
+					art:[],
+					comments:[]
+				}
+			})
+			mui.plusReady(function(){
+				
+				var _self=plus.webview.currentWebview();
+				artId=_self.artId;
+				mui.getJSON(
+					apiUrl+'article&m=articleInfo&artid='+artId,
+					function(res){
+//						console.log(JSON.stringify(res));
+						artObj.art=res.data;
+					}
+				);
+				getComments();
+			})
+			
+			function getComments(){
+				mui.getJSON(
+				    apiUrl +'articleComments&m=getComments&topicid=' + artId,
+					function(res){
+						console.log(JSON.stringify(res));
+						artObj.comments=res.data;
+					}
+				
+				);
+				
+			}
+			
+			document.getElementById("submitBtn").addEventListener("tap",function(){
+				var submitContent=document.getElementById("submitContent").value;
+				if(submitContent.length<2){
+					mui.toast('评论至少两个字符');
+					return false;
+				}
+				//提交评论,先登录才能提交
+				//判断登录
+				var checkRes=checkLogin();
+				if(!checkRes){
+					return;
+				}
+				mui.post(
+					apiUrl+'articleComments&m=submit',
+					{
+						wit_suid:checkRes[0],
+						wit_srand:checkRes[1],
+						topicid:artId,
+						contents:submitContent
+					},
+					function(res){
+						console.log(JSON.stringify(res));
+						if(res.status=='ok'){
+							mui.toast('评论成功');
+							document.getElementById("submitContent").value='';
+							getComments();
+						}else{
+							mui.toast('评论失败');
+						}
+					},'json'
+				);
+				
+			})
+				
+		</script>
+	</body>
+
+</html>

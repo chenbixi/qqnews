@@ -1,0 +1,65 @@
+{
+	"index.html": {
+		"resources": [
+			"img/headerBg.png",
+			"js/mui.min.js",
+			"fonts/mui.ttf",
+			"css/mui.min.css",
+			"img/logo.png",
+			"js/vue.min.js",
+			"sub.html"
+		],
+		"refer": [
+			"sub.html",
+			"login.html",
+			"my.html"
+		]
+	},
+	"sub.html": {
+		"resources": [
+			"js/mui.min.js",
+			"css/mui.min.css"
+		],
+		"refer": [
+			"info.html"
+		]
+	},
+	"info.html": {
+		"resources": [
+			"css/mui.min.css"
+		],
+		"refer": [
+			"login.html"
+		]
+	},
+	"login.html": {
+		"resources": [
+			"css/mui.min.css"
+		],
+		"refer": [
+			"reg.html"
+		]
+	},
+	"reg.html": {
+		"resources": [
+			"css/mui.min.css"
+		],
+		"refer": [
+			"my.html"
+		]
+	},
+	"my.html": {
+		"resources": [
+			"css/mui.min.css"
+		],
+		"refer": [
+			"login.html",
+			"comments.html"
+		]
+	},
+	"comments.html": {
+		"resources": [
+			"css/mui.min.css"
+		]
+	}
+}
